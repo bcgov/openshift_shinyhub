@@ -1,0 +1,28 @@
+proxy:
+  title: CSBC Shiny Proxy
+  logo-url: https://developer.gov.bc.ca/static/BCID_H_rgb_rev.0d8732671c9e.png
+  landing-page: /
+  heartbeat-rate: 10000
+  heartbeat-timeout: 60000
+  port: 8080
+  authentication: none
+  container-backend: kubernetes
+  kubernetes:
+    url: 
+  docker:
+    port-range-start: 20000
+  specs:
+    - id: 01_hello
+      display-name: Hello Application
+      description: Application which demonstrates the basics of a Shiny app
+      container-cmd: [ "R", "-e", "shinyproxy::run_01_hello()" ]
+      container-image: openanalytics/shinyproxy-demo
+      access-groups: [ scientists, mathematicians ]
+    - id: 06_tabsets
+      container-cmd: [ "R", "-e", "shinyproxy::run_06_tabsets()" ]
+      container-image: openanalytics/shinyproxy-demo
+      access-groups: scientists
+
+logging:
+  file:
+    name: shinyproxy.log

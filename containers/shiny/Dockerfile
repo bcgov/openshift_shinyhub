@@ -52,16 +52,23 @@ RUN /rocker_scripts/install_shiny_server.sh
 # EOF
 
 COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
-COPY fix-username.sh /usr/bin/fix-username.sh
 COPY shiny-server.sh /usr/bin/shiny-server.sh
+
+#----------
+# change the name of the user that shiny runs as, to the one that openshift has assigned
+#----------
+RUN <<EOF
+sed -i "s/shiny/$USER/g" /etc/shiny-server/shiny-server.conf
+EOF
+
+#----------
+# Do file group and permissions touchups
+#----------
 
 # Make sure the directory for individual app logs exists and is usable
 RUN chmod -R a+rwX /var/log/shiny-server
 RUN chmod -R a+rwX /var/lib/shiny-server
 RUN chown -R shiny /var/lib/shiny-server
-
-COPY fix-username.sh /usr/bin/fix-username.sh
-COPY shiny-server.sh /usr/bin/shiny-server.sh
 RUN chmod a+rx /usr/bin/shiny-server.sh
 
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
@@ -82,14 +89,12 @@ RUN chgrp -R 0 /opt/pandoc \
                  /srv/shiny-server \
                  /etc/shiny-server \
                  /usr/bin/shiny-server && \
-    chmod ug+rw /etc/passwd
+    chmod ug+r /etc/passwd
 
 # Ensure R's temporary directory is writable by any UID
 ENV TMPDIR=/tmp
 
 EXPOSE 3838 
-# Use a non-root numeric UID for compatibility with standard Docker/Kubernetes. OpenShift will ignore this.
-USER shiny
 
 # Bypass s6 (/init) and launch Shiny Server directly
 ENTRYPOINT []

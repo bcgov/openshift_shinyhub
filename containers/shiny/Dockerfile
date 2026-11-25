@@ -61,7 +61,8 @@ COPY fix-username.sh /usr/bin/fix-username.sh
 #----------
 
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
-RUN chmod +x /usr/bin/shiny-server.sh /usr/bin/fix-username.sh && \
+RUN sed -i 's/\r$//' /usr/bin/shiny-server.sh /usr/bin/fix-username.sh && \
+    chmod +x /usr/bin/shiny-server.sh /usr/bin/fix-username.sh && \
     chgrp -R 0 /opt/pandoc \
                /opt/shiny-server \
                /usr/local/lib/R \

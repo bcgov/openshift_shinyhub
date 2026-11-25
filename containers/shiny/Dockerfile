@@ -53,20 +53,15 @@ RUN /rocker_scripts/install_shiny_server.sh
 
 COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
 COPY shiny-server.sh /usr/bin/shiny-server.sh
-
-#----------
-# change the name of the user that shiny runs as, to the one that openshift has assigned
-#----------
-RUN <<EOF
-sed -i "s/shiny/$USER/g" /etc/shiny-server/shiny-server.conf
-EOF
+COPY fix-username.sh /usr/bin/fix-username.sh
 
 #----------
 # Do file group and permissions touchups
+# The "shiny" account is remapped to the OpenShift-assigned UID at start (fix-username.sh)
 #----------
 
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
-RUN chmod +x /usr/bin/shiny-server.sh && \
+RUN chmod +x /usr/bin/shiny-server.sh /usr/bin/fix-username.sh && \
     chgrp -R 0 /opt/pandoc \
                /opt/shiny-server \
                /usr/local/lib/R \
@@ -77,7 +72,8 @@ RUN chmod +x /usr/bin/shiny-server.sh && \
                /usr/bin/shiny-server \
                /etc/passwd \
                /usr/bin/shiny-server.sh && \
-    chmod -R g=u /opt/pandoc \
+    chmod -R g=u /etc/passwd \
+                 /opt/pandoc \
                  /opt/shiny-server \
                  /usr/local/lib/R \
                  /var/log/shiny-server \
@@ -90,7 +86,10 @@ RUN chmod +x /usr/bin/shiny-server.sh && \
 # Ensure R's temporary directory is writable by any UID
 ENV TMPDIR=/tmp
 
-EXPOSE 3838 
+EXPOSE 3838
+
+# Non-root default; OpenShift overrides with an arbitrary UID in group 0
+USER 1001
 
 # Bypass s6 (/init) and launch Shiny Server directly
 ENTRYPOINT []

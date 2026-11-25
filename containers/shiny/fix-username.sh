@@ -1,6 +1,8 @@
 #!/bin/sh
+# Map the "shiny" account to the arbitrary UID assigned by OpenShift
+[ -w /etc/passwd ] || exit 0
 tempfile=$(mktemp)
-sed -e "s/^shiny.*//g" /etc/passwd > $tempfile
-cp $tempfile /etc/passwd
-echo "shiny:x:$(id -u):$(id -g)::/tmp:/bin/bash" >> /etc/passwd
-rm -f $tempfile
+grep -v "^shiny:" /etc/passwd > "$tempfile"
+echo "shiny:x:$(id -u):$(id -g)::/tmp:/bin/sh" >> "$tempfile"
+cat "$tempfile" > /etc/passwd
+rm -f "$tempfile"

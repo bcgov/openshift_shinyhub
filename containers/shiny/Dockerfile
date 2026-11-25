@@ -68,8 +68,7 @@ EOF
 # Make sure the directory for individual app logs exists and is usable
 RUN chmod -R a+rwX /var/log/shiny-server
 RUN chmod -R a+rwX /var/lib/shiny-server
-RUN chown -R shiny /var/lib/shiny-server
-RUN chmod a+rx /usr/bin/shiny-server.sh
+RUN chmod aug+rx /usr/bin/shiny-server.sh
 
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
 RUN chgrp -R 0 /opt/pandoc \

@@ -65,11 +65,6 @@ EOF
 # Do file group and permissions touchups
 #----------
 
-# Make sure the directory for individual app logs exists and is usable
-RUN chmod -R a+rwX /var/log/shiny-server
-RUN chmod -R a+rwX /var/lib/shiny-server
-RUN chmod aug+rx /usr/bin/shiny-server.sh
-
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
 RUN chgrp -R 0 /opt/pandoc \
                /opt/shiny-server \
@@ -79,7 +74,8 @@ RUN chgrp -R 0 /opt/pandoc \
                /srv/shiny-server \
                /etc/shiny-server \
                /usr/bin/shiny-server \
-               /etc/passwd && \
+               /etc/passwd \
+               /usr/bin/shiny-server.sh && \
     chmod -R g=u /opt/pandoc \
                  /opt/shiny-server \
                  /usr/local/lib/R \
@@ -87,8 +83,10 @@ RUN chgrp -R 0 /opt/pandoc \
                  /var/lib/shiny-server \
                  /srv/shiny-server \
                  /etc/shiny-server \
-                 /usr/bin/shiny-server && \
-    chmod ug+r /etc/passwd
+                 /usr/bin/shiny-server \
+                 /usr/bin/shiny-server.sh && \
+    chmod ug+rw /etc/passwd \
+                /usr/bin/shiny-server.sh
 
 # Ensure R's temporary directory is writable by any UID
 ENV TMPDIR=/tmp

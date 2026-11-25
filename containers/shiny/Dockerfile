@@ -66,7 +66,8 @@ EOF
 #----------
 
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
-RUN chgrp -R 0 /opt/pandoc \
+RUN chmod +x /usr/bin/shiny-server.sh && \
+    chgrp -R 0 /opt/pandoc \
                /opt/shiny-server \
                /usr/local/lib/R \
                /var/log/shiny-server \
@@ -84,9 +85,7 @@ RUN chgrp -R 0 /opt/pandoc \
                  /srv/shiny-server \
                  /etc/shiny-server \
                  /usr/bin/shiny-server \
-                 /usr/bin/shiny-server.sh && \
-    chmod ug+rw /etc/passwd \
-                /usr/bin/shiny-server.sh
+                 /usr/bin/shiny-server.sh
 
 # Ensure R's temporary directory is writable by any UID
 ENV TMPDIR=/tmp

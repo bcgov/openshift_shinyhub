@@ -25,6 +25,7 @@ mkdir bin
 cd bin
 curl -LJO https://raw.githubusercontent.com/rocker-org/rocker-versioned2/refs/heads/master/scripts/bin/install2.R
 chmod +x *
+cd ../..
 EOF
 
 RUN /rocker_scripts/install_R_source.sh

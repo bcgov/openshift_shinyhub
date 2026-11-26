@@ -125,6 +125,7 @@ EOF
 # Bypass s6 (/init) and launch Shiny Server directly
 ENTRYPOINT []
 
-RUN chmod 777 /usr/bin/shiny-server.sh
-RUN ls -a /usr/bin/shiny-server.sh
-CMD ["/usr/bin/shiny-server.sh"]
+#RUN chmod 777 /usr/bin/shiny-server.sh
+#RUN ls -a /usr/bin/shiny-server.sh
+#CMD ["/usr/bin/shiny-server.sh"]
+CMD ["shiny-server"]

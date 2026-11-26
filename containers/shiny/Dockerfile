@@ -9,15 +9,16 @@ ENV R_VERSION="4.6.2"
 ENV R_HOME="/usr/local/lib/R"
 ENV TZ="Etc/UTC-7"
 
-RUN <<EOF
-echo *********************
-pwd
-echo *********************
-EOF
-
 RUN apt-get update && apt-get install -y curl
 #Get all the sources we use and put them in the same hiearchiy as the rocker dockerfie
 RUN <<EOF
+mkdir assets
+cd assets
+curl -LJO https://raw.githubusercontent.com/bcgov/openshift_shinyhub/tree/main/containers/shiny/shiny-server.conf
+curl -LJO https://raw.githubusercontent.com/bcgov/openshift_shinyhub/tree/main/containers/shiny/shiny-server.sh
+curl -LJO https://raw.githubusercontent.com/bcgov/openshift_shinyhub/tree/main/containers/shiny/fix-username.sh
+chmod +x *.sh
+cd ..
 mkdir rocker_scripts
 cd rocker_scripts
 curl -LJO https://raw.githubusercontent.com/rocker-org/rocker-versioned2/refs/heads/master/scripts/install_R_source.sh
@@ -31,7 +32,6 @@ mkdir bin
 cd bin
 curl -LJO https://raw.githubusercontent.com/rocker-org/rocker-versioned2/refs/heads/master/scripts/bin/install2.R
 chmod +x *
-cd ../..
 EOF
 
 RUN /rocker_scripts/install_R_source.sh
@@ -51,7 +51,10 @@ ENV PANDOC_VERSION="default"
 
 RUN /rocker_scripts/install_shiny_server.sh
 
-#Do some cleanup
+#----------
+# Cleanup demo application reports.
+#----------
+
 # RUN <<EOF
 # apt-get autoremove --purge -y
 # cd /srv/shiny-server
@@ -59,14 +62,10 @@ RUN /rocker_scripts/install_shiny_server.sh
 # EOF
 
 RUN <<EOF
-echo *********************
-pwd
-echo *********************
+mv /assets/shiny-server.conf /etc/shiny-server/shiny-server.conf
+mv /assets/shiny-server.sh /usr/bin/shiny-server.sh
+mv /assets/fix-username.sh /usr/bin/fix-username.sh
 EOF
-
-COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
-COPY shiny-server.sh /usr/bin/shiny-server.sh
-COPY fix-username.sh /usr/bin/fix-username.sh
 
 #----------
 # Do file group and permissions touchups

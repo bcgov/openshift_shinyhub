@@ -9,6 +9,12 @@ ENV R_VERSION="4.6.2"
 ENV R_HOME="/usr/local/lib/R"
 ENV TZ="Etc/UTC-7"
 
+RUN <<EOF
+echo *********************
+pwd
+echo *********************
+EOF
+
 RUN apt-get update && apt-get install -y curl
 #Get all the sources we use and put them in the same hiearchiy as the rocker dockerfie
 RUN <<EOF
@@ -52,13 +58,18 @@ RUN /rocker_scripts/install_shiny_server.sh
 # rm -rf *
 # EOF
 
+RUN <<EOF
+echo *********************
+pwd
+echo *********************
+EOF
+
 COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
 COPY shiny-server.sh /usr/bin/shiny-server.sh
 COPY fix-username.sh /usr/bin/fix-username.sh
 
 #----------
 # Do file group and permissions touchups
-# The "shiny" account is remapped to the OpenShift-assigned UID at start (fix-username.sh)
 #----------
 
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
@@ -93,11 +104,17 @@ EXPOSE 3838
 
 ENV HOME=/tmp
 
+RUN <<EOF
+echo *********************
+cat /etc/passwd
+echo *********************
+EOF
+
 # OpenShift's restricted SCC replaces this with the project's assigned UID (group 0) at runtime;
 # fix-username.sh then maps that UID to the "shiny" account
 USER Shiny
 
 # Bypass s6 (/init) and launch Shiny Server directly
 ENTRYPOINT []
-RUN ECHO $USER
+
 CMD ["/usr/bin/shiny-server.sh"]

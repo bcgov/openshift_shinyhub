@@ -109,9 +109,14 @@ cat /etc/passwd
 echo *********************
 EOF
 
-# OpenShift's restricted SCC replaces this with the project's assigned UID (group 0) at runtime;
-# fix-username.sh then maps that UID to the "shiny" account
-USER Shiny
+# Create a non-root user for local Docker testing (OpenShift will ignore the UID)
+RUN useradd -u 1001 -r -g 0 -d /app -s /sbin/nologin -c "Default Application User" appuser && \
+    # Assign ownership to group 0 (root group) and match group permissions to user permissions
+    chgrp -R 0 /app && \
+    chmod -R g=u /app
+
+# Specify the numeric UID (OpenShift requires a numeric UID, not a username, to pass validation)
+USER 1001
 
 # Bypass s6 (/init) and launch Shiny Server directly
 ENTRYPOINT []

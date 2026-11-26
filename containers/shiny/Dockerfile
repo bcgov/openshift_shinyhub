@@ -61,8 +61,8 @@ COPY fix-username.sh /usr/bin/fix-username.sh
 #----------
 
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
-RUN sed -i 's/\r$//' /usr/bin/shiny-server.sh /usr/bin/fix-username.sh && \
-    chmod 0775 /usr/bin/shiny-server.sh /usr/bin/fix-username.sh && \
+RUN sed -i 's/\r$//' /usr/bin/shiny-server.sh && \
+    chmod 0775 /usr/bin/shiny-server.sh && \
     chgrp -R 0 /opt/pandoc \
                /opt/shiny-server \
                /usr/local/lib/R \
@@ -94,8 +94,9 @@ ENV HOME=/tmp
 
 # OpenShift's restricted SCC replaces this with the project's assigned UID (group 0) at runtime;
 # fix-username.sh then maps that UID to the "shiny" account
-USER 1001
+USER Shiny
 
 # Bypass s6 (/init) and launch Shiny Server directly
 ENTRYPOINT []
+RUN ECHO $USER
 CMD ["/usr/bin/shiny-server.sh"]

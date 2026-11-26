@@ -105,18 +105,22 @@ ENV HOME=/tmp
 
 RUN <<EOF
 echo *********************
-cat /etc/passwd
+cat /etc/passwd | grep shiny
+echo *********************
+usermod -g 0 shiny
+echo *********************
+cat /etc/passwd | grep shiny
 echo *********************
 EOF
 
 # Create a non-root user for local Docker testing (OpenShift will ignore the UID)
-RUN useradd -u 1001 -r -g 0 -d /app -s /sbin/nologin -c "Default Application User" appuser && \
+# RUN useradd -u 1001 -r -g 0 -d /app -s /sbin/nologin -c "Default Application User" appuser && \
     # Assign ownership to group 0 (root group) and match group permissions to user permissions
-    chgrp -R 0 /app && \
-    chmod -R g=u /app
+#    chgrp -R 0 /app && \
+#    chmod -R g=u /app
 
 # Specify the numeric UID (OpenShift requires a numeric UID, not a username, to pass validation)
-USER 1001
+# USER 1001
 
 # Bypass s6 (/init) and launch Shiny Server directly
 ENTRYPOINT []

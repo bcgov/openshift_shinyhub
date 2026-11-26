@@ -128,4 +128,4 @@ ENTRYPOINT []
 #RUN chmod 777 /usr/bin/shiny-server.sh
 RUN ls -la /usr/bin
 #CMD ["/usr/bin/shiny-server.sh"]
-CMD ["/usr/bin/shiny-server"]
+CMD ["sh", "-c", "tail -f /dev/null"]

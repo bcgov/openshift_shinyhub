@@ -126,6 +126,6 @@ EOF
 ENTRYPOINT []
 
 #RUN chmod 777 /usr/bin/shiny-server.sh
-#RUN ls -a /usr/bin/shiny-server.sh
+RUN ls -la /usr/bin
 #CMD ["/usr/bin/shiny-server.sh"]
-CMD ["shiny-server"]
+CMD ["/usr/bin/shiny-server"]

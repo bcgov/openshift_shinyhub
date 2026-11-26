@@ -1,6 +1,6 @@
 #!/bin/sh
 
-/usr/bin/fix-username.sh
+# /usr/bin/fix-username.sh
 
 if [ "$APPLICATION_LOGS_TO_STDOUT" = "false" ];
 then

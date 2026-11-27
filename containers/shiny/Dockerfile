@@ -1,3 +1,4 @@
+# Shiny Server for running on OpenShift.
 # Based upon the Shiny dockerfile from rocker-org https://rocker-project.org/images/versioned/shiny.html
 # OpenShift run user fixes from https://github.com/Duke-GCB/openshift-shiny
 # Timezone set to UTC-7 for British Columbia
@@ -6,9 +7,14 @@
 FROM ubuntu:26.04
 RUN mkdir app
 WORKDIR /app
+# on docker/podman we need to use COPY . /app/
+# on openshift we need to use copy /containers/shiny/* /app/
 COPY /containers/shiny/* /app/
-RUN ls -la /app
+#COPY . /app/
 
+#----------
+# Set the environment variables
+#----------
 ENV R_VERSION="4.6.2"
 ENV R_HOME="/usr/local/lib/R"
 ENV TZ="Etc/UTC-7"
@@ -22,9 +28,11 @@ ENV PANDOC_VERSION="default"
 ENV TMPDIR=/tmp
 ENV HOME=/tmp
 
+#----------
 # Update the environment
 # Install curl
 # Reconfigure locales
+#----------
 RUN <<EOF
 apt-get update
 apt-get install -y curl
@@ -33,7 +41,9 @@ locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
 EOF
 
-#Get all the sources we use and put them in the same hiearchiy as the rocker dockerfie
+#----------
+# Stage the rocker shiny install and configuration scripts.
+#----------
 RUN <<EOF
 mkdir rocker_scripts
 cd rocker_scripts
@@ -51,21 +61,16 @@ chmod +x *
 ln -s /app/rocker_scripts /rocker_scripts
 EOF
 
+#----------
+# Run the rocker install scripts.
+#----------
 RUN /app/rocker_scripts/install_R_source.sh
 RUN /app/rocker_scripts/setup_R.sh
 RUN /app/rocker_scripts/install_shiny_server.sh
 
 #----------
-# Cleanup demo application reports.
+# Move the Duke-GCB files
 #----------
-
-# RUN <<EOF
-# apt-get autoremove --purge -y
-# cd /srv/shiny-server
-# rm -rf *
-# EOF
-
-
 RUN <<EOF
 chmod +x /app/*.sh
 mv /app/shiny-server.conf /etc/shiny-server/shiny-server.conf
@@ -75,9 +80,8 @@ EOF
 
 #----------
 # Do file group and permissions touchups
-#----------
-
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
+#----------
 RUN chgrp -R 0 /opt/pandoc \
                /opt/shiny-server \
                /usr/local/lib/R \
@@ -100,20 +104,20 @@ RUN chgrp -R 0 /opt/pandoc \
                  /usr/bin/shiny-server \
                  /usr/bin/fix-username.sh \
                  /usr/bin/shiny-server.sh
-# Ensure R's temporary directory is writable by any UID
 
+#----------
 # Change the shiny user group to 0
+#----------
 RUN <<EOF
 usermod -g 0 shiny
 EOF
 
+#----------
+# Expose the port we are going to use.
+#----------
 EXPOSE 3838
 
-# Specify the numeric UID (OpenShift requires a numeric UID, not a username, to pass validation)
-# USER 1001
-
-# Bypass s6 (/init) and launch Shiny Server directly
-# ENTRYPOINT []
-
+#----------
+# Run the shiny server
+#----------
 CMD ["/usr/bin/shiny-server.sh"]
-#CMD ["/bin/bash", "-c", "sleep infinity"]

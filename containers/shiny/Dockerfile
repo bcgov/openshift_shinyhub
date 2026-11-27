@@ -106,7 +106,7 @@ EXPOSE 3838
 # USER 1001
 
 # Bypass s6 (/init) and launch Shiny Server directly
-ENTRYPOINT []
+# ENTRYPOINT []
 
 #CMD ["/usr/bin/shiny-server.sh"]
 CMD ["/bin/bash", "-c", "sleep infinity"]

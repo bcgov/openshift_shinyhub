@@ -4,21 +4,36 @@
 # syntax=docker/dockerfile:1
 
 FROM ubuntu:26.04
+WORKDIR /app
+COPY . /app/
 
 ENV R_VERSION="4.6.2"
 ENV R_HOME="/usr/local/lib/R"
 ENV TZ="Etc/UTC-7"
+ENV CRAN="https://p3m.dev/cran/__linux__/resolute/latest"
+ENV LANGUAGE=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+# ENV S6_VERSION="v2.1.0.2"
+ENV SHINY_SERVER_VERSION="latest"
+ENV PANDOC_VERSION="default"
+ENV TMPDIR=/tmp
+ENV HOME=/tmp
 
-RUN apt-get update && apt-get install -y curl
+# Update the environment
+# Install curl
+# Reconfigure locales
+RUN <<EOF
+apt-get update
+apt-get install -y curl
+apt-get install -y locales
+locale-gen en_US.UTF-8
+update-locale LANG=en_US.UTF-8
+EOF
+
 #Get all the sources we use and put them in the same hiearchiy as the rocker dockerfie
 RUN <<EOF
-mkdir assets
-cd assets
-curl -LJO https://raw.githubusercontent.com/bcgov/openshift_shinyhub/tree/main/containers/shiny/shiny-server.conf
-curl -LJO https://raw.githubusercontent.com/bcgov/openshift_shinyhub/tree/main/containers/shiny/shiny-server.sh
-curl -LJO https://raw.githubusercontent.com/bcgov/openshift_shinyhub/tree/main/containers/shiny/fix-username.sh
-chmod +x *.sh
-cd ..
+chmod +x /app/*.sh
 mkdir rocker_scripts
 cd rocker_scripts
 curl -LJO https://raw.githubusercontent.com/rocker-org/rocker-versioned2/refs/heads/master/scripts/install_R_source.sh
@@ -32,19 +47,12 @@ mkdir bin
 cd bin
 curl -LJO https://raw.githubusercontent.com/rocker-org/rocker-versioned2/refs/heads/master/scripts/bin/install2.R
 chmod +x *
+ln -s /app/rocker_scripts /rocker_scripts
 EOF
 
-RUN /rocker_scripts/install_R_source.sh
-ENV CRAN="https://p3m.dev/cran/__linux__/resolute/latest"
-ENV LANG=en_US.UTF-8
-
-RUN /rocker_scripts/setup_R.sh
-
-# ENV S6_VERSION="v2.1.0.2"
-ENV SHINY_SERVER_VERSION="latest"
-ENV PANDOC_VERSION="default"
-
-RUN /rocker_scripts/install_shiny_server.sh
+RUN /app/rocker_scripts/install_R_source.sh
+RUN /app/rocker_scripts/setup_R.sh
+RUN /app/rocker_scripts/install_shiny_server.sh
 
 #----------
 # Cleanup demo application reports.
@@ -67,8 +75,7 @@ RUN /rocker_scripts/install_shiny_server.sh
 #----------
 
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
-RUN chmod 0775 /usr/bin/shiny-server.sh && \
-    chgrp -R 0 /opt/pandoc \
+RUN chgrp -R 0 /opt/pandoc \
                /opt/shiny-server \
                /usr/local/lib/R \
                /var/log/shiny-server \
@@ -76,9 +83,7 @@ RUN chmod 0775 /usr/bin/shiny-server.sh && \
                /srv/shiny-server \
                /etc/shiny-server \
                /usr/bin/shiny-server \
-               /etc/passwd \
-               /usr/bin/shiny-server.sh \
-               /usr/bin/fix-username.sh && \
+               /etc/passwd && \
     chmod -R g=u /etc/passwd \
                  /opt/pandoc \
                  /opt/shiny-server \
@@ -87,25 +92,15 @@ RUN chmod 0775 /usr/bin/shiny-server.sh && \
                  /var/lib/shiny-server \
                  /srv/shiny-server \
                  /etc/shiny-server \
-                 /usr/bin/shiny-server \
-                 /usr/bin/shiny-server.sh \
-                 /usr/bin/fix-username.sh
+                 /usr/bin/shiny-server 
 # Ensure R's temporary directory is writable by any UID
-ENV TMPDIR=/tmp
 
-EXPOSE 3838
-
-ENV HOME=/tmp
-
+# Change the shiny user group to 0
 RUN <<EOF
 usermod -g 0 shiny
 EOF
 
-# Create a non-root user for local Docker testing (OpenShift will ignore the UID)
-# RUN useradd -u 1001 -r -g 0 -d /app -s /sbin/nologin -c "Default Application User" appuser && \
-    # Assign ownership to group 0 (root group) and match group permissions to user permissions
-#    chgrp -R 0 /app && \
-#    chmod -R g=u /app
+EXPOSE 3838
 
 # Specify the numeric UID (OpenShift requires a numeric UID, not a username, to pass validation)
 # USER 1001

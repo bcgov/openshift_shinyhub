@@ -4,7 +4,10 @@
 # syntax=docker/dockerfile:1
 
 FROM ubuntu:26.04
+RUN mkdir app
 WORKDIR /app
+COPY /containers/shiny/* /app/
+RUN ls -la /app
 
 ENV R_VERSION="4.6.2"
 ENV R_HOME="/usr/local/lib/R"
@@ -62,8 +65,7 @@ RUN /app/rocker_scripts/install_shiny_server.sh
 # rm -rf *
 # EOF
 
-COPY . /app/
-RUN ls -la /app
+
 RUN <<EOF
 chmod +x /app/*.sh
 mv /app/shiny-server.conf /etc/shiny-server/shiny-server.conf

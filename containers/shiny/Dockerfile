@@ -3,7 +3,7 @@
 # Timezone set to UTC-7 for British Columbia
 # syntax=docker/dockerfile:1
 
-FROM docker.io/library/ubuntu:resolute
+FROM ubuntu:26.04
 
 ENV R_VERSION="4.6.2"
 ENV R_HOME="/usr/local/lib/R"
@@ -38,12 +38,7 @@ RUN /rocker_scripts/install_R_source.sh
 ENV CRAN="https://p3m.dev/cran/__linux__/resolute/latest"
 ENV LANG=en_US.UTF-8
 
-RUN <<EOF
-if grep -q "1000" /etc/passwd; then
-    userdel --remove "$(id -un 1000)";
-fi
-/rocker_scripts/setup_R.sh
-EOF
+RUN /rocker_scripts/setup_R.sh
 
 # ENV S6_VERSION="v2.1.0.2"
 ENV SHINY_SERVER_VERSION="latest"
@@ -61,19 +56,18 @@ RUN /rocker_scripts/install_shiny_server.sh
 # rm -rf *
 # EOF
 
-RUN <<EOF
-mv /assets/shiny-server.conf /etc/shiny-server/shiny-server.conf
-mv /assets/shiny-server.sh /usr/bin/shiny-server.sh
-mv /assets/fix-username.sh /usr/bin/fix-username.sh
-EOF
+# RUN <<EOF
+# mv /assets/shiny-server.conf /etc/shiny-server/shiny-server.conf
+# mv /assets/shiny-server.sh /usr/bin/shiny-server.sh
+# mv /assets/fix-username.sh /usr/bin/fix-username.sh
+# EOF
 
 #----------
 # Do file group and permissions touchups
 #----------
 
 # Grant group 0 (OpenShift's arbitrary UID group) ownership and write permissions
-RUN sed -i 's/\r$//' /usr/bin/shiny-server.sh && \
-    chmod 0775 /usr/bin/shiny-server.sh && \
+RUN chmod 0775 /usr/bin/shiny-server.sh && \
     chgrp -R 0 /opt/pandoc \
                /opt/shiny-server \
                /usr/local/lib/R \
@@ -104,13 +98,7 @@ EXPOSE 3838
 ENV HOME=/tmp
 
 RUN <<EOF
-echo *********************
-cat /etc/passwd | grep shiny
-echo *********************
 usermod -g 0 shiny
-echo *********************
-cat /etc/passwd | grep shiny
-echo *********************
 EOF
 
 # Create a non-root user for local Docker testing (OpenShift will ignore the UID)
@@ -125,7 +113,5 @@ EOF
 # Bypass s6 (/init) and launch Shiny Server directly
 ENTRYPOINT []
 
-#RUN chmod 777 /usr/bin/shiny-server.sh
-RUN ls -la /usr/bin
 #CMD ["/usr/bin/shiny-server.sh"]
 CMD ["/bin/bash", "-c", "sleep infinity"]

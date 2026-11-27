@@ -64,11 +64,11 @@ RUN /app/rocker_scripts/install_shiny_server.sh
 # rm -rf *
 # EOF
 
-# RUN <<EOF
-# mv /assets/shiny-server.conf /etc/shiny-server/shiny-server.conf
-# mv /assets/shiny-server.sh /usr/bin/shiny-server.sh
-# mv /assets/fix-username.sh /usr/bin/fix-username.sh
-# EOF
+RUN <<EOF
+mv /app/shiny-server.conf /etc/shiny-server/shiny-server.conf
+mv /app/shiny-server.sh /usr/bin/shiny-server.sh
+mv /app/fix-username.sh /usr/bin/fix-username.sh
+EOF
 
 #----------
 # Do file group and permissions touchups
@@ -83,7 +83,8 @@ RUN chgrp -R 0 /opt/pandoc \
                /srv/shiny-server \
                /etc/shiny-server \
                /usr/bin/shiny-server \
-               /etc/passwd && \
+               /etc/passwd \
+               /usr/bin/shiny-server.sh && \
     chmod -R g=u /etc/passwd \
                  /opt/pandoc \
                  /opt/shiny-server \
@@ -92,7 +93,8 @@ RUN chgrp -R 0 /opt/pandoc \
                  /var/lib/shiny-server \
                  /srv/shiny-server \
                  /etc/shiny-server \
-                 /usr/bin/shiny-server 
+                 /usr/bin/shiny-server \
+                 /usr/bin/shiny-server.sh
 # Ensure R's temporary directory is writable by any UID
 
 # Change the shiny user group to 0
@@ -108,5 +110,5 @@ EXPOSE 3838
 # Bypass s6 (/init) and launch Shiny Server directly
 # ENTRYPOINT []
 
-#CMD ["/usr/bin/shiny-server.sh"]
-CMD ["/bin/bash", "-c", "sleep infinity"]
+CMD ["/usr/bin/shiny-server.sh"]
+#CMD ["/bin/bash", "-c", "sleep infinity"]

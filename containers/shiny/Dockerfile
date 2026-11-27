@@ -84,6 +84,7 @@ RUN chgrp -R 0 /opt/pandoc \
                /etc/shiny-server \
                /usr/bin/shiny-server \
                /etc/passwd \
+               /usr/bin/fix-username.sh \
                /usr/bin/shiny-server.sh && \
     chmod -R g=u /etc/passwd \
                  /opt/pandoc \
@@ -94,6 +95,7 @@ RUN chgrp -R 0 /opt/pandoc \
                  /srv/shiny-server \
                  /etc/shiny-server \
                  /usr/bin/shiny-server \
+                 /usr/bin/fix-username.sh \
                  /usr/bin/shiny-server.sh
 # Ensure R's temporary directory is writable by any UID
 

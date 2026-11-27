@@ -5,7 +5,6 @@
 
 FROM ubuntu:26.04
 WORKDIR /app
-COPY . /app/
 
 ENV R_VERSION="4.6.2"
 ENV R_HOME="/usr/local/lib/R"
@@ -33,7 +32,6 @@ EOF
 
 #Get all the sources we use and put them in the same hiearchiy as the rocker dockerfie
 RUN <<EOF
-chmod +x /app/*.sh
 mkdir rocker_scripts
 cd rocker_scripts
 curl -LJO https://raw.githubusercontent.com/rocker-org/rocker-versioned2/refs/heads/master/scripts/install_R_source.sh
@@ -64,7 +62,10 @@ RUN /app/rocker_scripts/install_shiny_server.sh
 # rm -rf *
 # EOF
 
+COPY . /app/
+RUN ls -la /app
 RUN <<EOF
+chmod +x /app/*.sh
 mv /app/shiny-server.conf /etc/shiny-server/shiny-server.conf
 mv /app/shiny-server.sh /usr/bin/shiny-server.sh
 mv /app/fix-username.sh /usr/bin/fix-username.sh
